@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -e
+
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Installing required packages"
+PKG_LIB="su-exec bash sudo build-base git nodejs python3 py3-pip py3-setuptools py3-ipykernel"
+PKG_DEV="curl"
+docker-install -r -u ${PKG_LIB} ${PKG_DEV}
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
+echo
+
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Installing code-server"
+DOWNLOAD_URL="$(wget --no-check-certificate -q -O - https://api.github.com/repos/coder/code-server/releases |  grep '"browser_download_url": .*-linux-amd64.tar.gz' | sed -e 's/^.*"browser_download_url": "\(.*\)".*$/\1/g' | sort -V | tail -1)"
+if [ -z "${DOWNLOAD_URL}" ]; then
+	echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] Cannot get download URL"
+	exit 1
+fi
+rm -rf /app
+mkdir -p /app
+cd /app
+echo "DOWNLOAD URL : ${DOWNLOAD_URL}"
+wget --no-check-certificate -q -O - ${DOWNLOAD_URL} | tar zxf -
+mv code-server-* code-server
+sed -i 's/^exec /LD_LIBRARY_PATH=\/usr\/local\/lib:\/usr\/lib:\/lib:\/lib\/glibc exec /g' /app/code-server/bin/code-server
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
+echo
+
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Uninstalling unnecessary packages"
+docker-install -d -c ${PKG_DEV}
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
+echo
+
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Setting basic configurations"
+mkdir -p /conf.d /conf.d/code-server /conf.d/user-data /conf.d/extensions
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
+echo
+
+

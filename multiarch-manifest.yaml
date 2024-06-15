@@ -1,0 +1,6 @@
+image: forumi0721/alpine-code-server:latest
+manifests:
+  - image: forumi0721/alpine-code-server:x64
+    platform:
+      architecture: amd64
+      os: linux

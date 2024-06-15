@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -e
+
+if [ -e /.init ]; then
+	exit
+fi
+
+touch /.init
+
+mkdir -p /conf.d /conf.d/code-server /conf.d/user-data /conf.d/extensions
+
+RUN_USER_NAME=${RUN_USER_NAME:-forumi0721}
+RUN_USER_UID=${RUN_USER_UID:-1000}
+RUN_USER_GID=${RUN_USER_GID:-100}
+
+docker-adduser -u ${RUN_USER_UID} -g ${RUN_USER_GID} -H /home/${RUN_USER_NAME} -S /bin/bash ${RUN_USER_NAME}
+
+docker-chown ${RUN_USER_NAME} /conf.d
+
+if [ ! -s /conf.d/code-server/config.yml ]; then
+	echo "bind-addr: 0.0.0.0:8080
+auth: password
+password: password
+cert: false" > /conf.d/code-server/config.yml
+	docker-chown ${RUN_USER_NAME} /conf.d/code-server/config.yml
+fi
+
