@@ -16,7 +16,13 @@ RUN_USER_GID=${RUN_USER_GID:-100}
 
 docker-adduser -u ${RUN_USER_UID} -g ${RUN_USER_GID} -H /home/${RUN_USER_NAME} -S /bin/bash ${RUN_USER_NAME}
 
+echo "${RUN_USER_NAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/${RUN_USER_NAME}
+chmod 600 /etc/sudoers.d/${RUN_USER_NAME}
+
 docker-chown ${RUN_USER_NAME} /conf.d
+docker-chown ${RUN_USER_NAME} /conf.d/code-server
+docker-chown ${RUN_USER_NAME} /conf.d/user-data
+docker-chown ${RUN_USER_NAME} /conf.d/extensions
 
 if [ ! -s /conf.d/code-server/config.yml ]; then
 	echo "bind-addr: 0.0.0.0:8080
