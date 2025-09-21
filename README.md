@@ -61,5 +61,5 @@ docker run -d \
 
 | ENV                | Description                                      |
 |--------------------|--------------------------------------------------|
-| -                  | -                                                |
+| LISTEN_PORT        | code-server service port (Default : 8080)        |
 

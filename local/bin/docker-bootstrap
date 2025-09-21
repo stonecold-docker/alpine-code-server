@@ -24,11 +24,14 @@ docker-chown ${RUN_USER_NAME} /conf.d/code-server
 docker-chown ${RUN_USER_NAME} /conf.d/user-data
 docker-chown ${RUN_USER_NAME} /conf.d/extensions
 
+LISTEN_PORT="${LISTEN_PORT:-8080}"
 if [ ! -s /conf.d/code-server/config.yml ]; then
-	echo "bind-addr: 0.0.0.0:8080
+	echo "bind-addr: 0.0.0.0:${LISTEN_PORT}
 auth: password
 password: password
 cert: false" > /conf.d/code-server/config.yml
 	docker-chown ${RUN_USER_NAME} /conf.d/code-server/config.yml
+else
+	sed -i -e "s/^\(bind-addr: 0.0.0.0:\).*$/\1${LISTEN_PORT}/g" /conf.d/code-server/config.yml
 fi
 
