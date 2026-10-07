@@ -4,8 +4,106 @@ set -e
 
 echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Installing required packages"
 PKG_LIB="su-exec bash sudo build-base linux-headers git openssh-client nodejs python3 python3-dev py3-pip py3-setuptools py3-ipykernel nodejs npm vim curl wget"
-PKG_DEV=""
+PKG_DEV="binutils"
 docker-install -r -u ${PKG_LIB} ${PKG_DEV}
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
+echo
+
+echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Installing glibc"
+DEBIAN_MIRROR=http://ftp.kr.debian.org/debian
+#DEBIAN_MIRROR=http://ftp.lanet.kr/debian
+#DEBIAN_MIRROR=http://ftp.harukasan.org/debian
+#DEBIAN_MIRROR=http://mirror.anigil.com/debian
+DEBIAN_ARH=
+LIB_NAME=
+LD_NAME=
+LD_FULL_PATH=
+case "$(uname -m)" in
+	x86_64)
+		DEBIAN_ARCH=amd64
+		LIB_NAME=x86_64-linux-gnu
+		LD_NAME=ld-linux-x86-64.so.2
+		LD_FULL_PATH=/lib64/${LD_NAME}
+		;;
+	aarch64)
+		DEBIAN_ARCH=arm64
+		LIB_NAME=aarch64-linux-gnu
+		LD_NAME=ld-linux-aarch64.so.1
+		LD_FULL_PATH=/lib/${LD_NAME}
+		;;
+	armv7l)
+		DEBIAN_ARCH=armhf
+		LIB_NAME=arm-linux-gnueabihf
+		LD_NAME=ld-linux-armhf.so.3
+		LD_FULL_PATH=/lib/${LD_NAME}
+		;;
+esac
+
+mkdir -p /build
+cd /build
+
+set +e
+wget --no-check-certificate -q ${DEBIAN_MIRROR} -O - | true &> /dev/null
+sleep 2
+set -e
+
+wget --no-check-certificate -q ${DEBIAN_MIRROR}/dists/stable/main/binary-${DEBIAN_ARCH}/Packages.gz
+
+for x in libc6:glibc libgcc-s1:gcc libstdc++6:gcc libc-bin:glibc locales:glibc
+do
+	echo ${x}
+	x1=$(echo ${x} | cut -d ':' -f 1)
+	x2=$(echo ${x} | cut -d ':' -f 2)
+	mkdir -p "${x1}"
+	cd "${x1}"
+	wget --no-check-certificate -q "$(zcat ../Packages.gz | grep "Filename: pool/main/g/${x2}.*/${x1}_.*.deb" | sed -e "s@^.*Filename: @${DEBIAN_MIRROR}/\1@g")"
+	ar -xf *.deb
+	tar Jxf data.tar.xz || tar zxf data.tar.gz
+	rm -rf *.deb debian-binary control.* data.*
+	cd ..
+done
+
+mkdir -p /lib/glibc
+cp -ar libc6/usr/lib/${LIB_NAME}/* /lib/glibc/
+cp -ar libgcc-s1/usr/lib/${LIB_NAME}/* /lib/glibc/
+cp -ar libstdc++6/usr/lib/${LIB_NAME}/* /lib/glibc/
+
+case "$(uname -m)" in
+	x86_64)
+		mkdir -p /lib64
+		ln -sf /lib/glibc/${LD_NAME} /lib64/${LD_NAME}
+		;;
+	aarch64)
+		ln -sf /lib/glibc/${LD_NAME} /lib/${LD_NAME}
+		;;
+	armv7l)
+		ln -sf /lib/glibc/${LD_NAME} /lib/${LD_NAME}
+		;;
+esac
+
+mkdir -p /usr/share/i18n/charmaps /usr/share/i18n/locales /usr/lib/locale
+cp -ar /build/locales/usr/share/i18n/charmaps/UTF-8.gz /usr/share/i18n/charmaps/
+cp -ar /build/locales/usr/share/i18n/locales/en_US /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/en_GB /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/i18n /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/i18n_ctype /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/iso14651_t1 /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/iso14651_t1_common /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_neutral /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_combining /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_circle /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_cjk_compat /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_compat /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_font /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_fraction /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_narrow /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_small /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_wide /usr/share/i18n/locales/
+cp -ar /build/locales/usr/share/i18n/locales/translit_emojis /usr/share/i18n/locales/
+LD_LIBRARY_PATH=/lib/glibc /build/libc-bin/usr/bin/localedef -c -f UTF-8 -i en_US en_US.UTF-8
+
+cd /
+rm -rf /build
 echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
 echo
 
