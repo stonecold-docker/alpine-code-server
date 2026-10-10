@@ -2,8 +2,11 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/forumi0721/alpine-code-server)
 ![Docker Stars](https://img.shields.io/docker/stars/forumi0721/alpine-code-server)
 
-### x64
-![Docker Image Size](https://img.shields.io/docker/image-size/forumi0721/alpine-code-server/x64)
+
+
+----------------------------------------
+### amd64
+![Docker Image Size (tag)](https://img.shields.io/docker/image-size/forumi0721/alpine-base/latest?arch=amd64)
 
 
 
@@ -11,8 +14,8 @@
 #### Description
 
 * Distribution : [Alpine Linux](https://alpinelinux.org/)
-* Architecture : x64
-* Appplication : code-server
+* Architecture : amd64
+* Application : code-server
     - Run VS Code on any machine anywhere and access it in the browser.
 
 
@@ -24,7 +27,7 @@
 docker run -d \
            -p 8080:8080/tcp \
            -v /conf.d:/conf.d \
-           forumi0721/alpine-code-server:[ARCH_TAG]
+           forumi0721/alpine-code-server:latest
 ```
 
 
