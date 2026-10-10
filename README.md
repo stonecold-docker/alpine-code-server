@@ -6,7 +6,9 @@
 
 ----------------------------------------
 ### amd64
-![Docker Image Size (tag)](https://img.shields.io/docker/image-size/forumi0721/alpine-base/latest?arch=amd64)
+![Docker Image Size (tag)](https://img.shields.io/docker/image-size/forumi0721/alpine-code-server/latest?arch=amd64)
+### arm64
+![Docker Image Size (tag)](https://img.shields.io/docker/image-size/forumi0721/alpine-code-server/latest?arch=arm64)
 
 
 
@@ -14,7 +16,7 @@
 #### Description
 
 * Distribution : [Alpine Linux](https://alpinelinux.org/)
-* Architecture : amd64
+* Architecture : amd64, arm64
 * Application : code-server
     - Run VS Code on any machine anywhere and access it in the browser.
 
