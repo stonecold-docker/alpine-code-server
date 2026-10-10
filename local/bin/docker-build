@@ -76,9 +76,6 @@ case "$(uname -m)" in
 	aarch64)
 		ln -sf /lib/glibc/${LD_NAME} /lib/${LD_NAME}
 		;;
-	armv7l)
-		ln -sf /lib/glibc/${LD_NAME} /lib/${LD_NAME}
-		;;
 esac
 
 mkdir -p /usr/share/i18n/charmaps /usr/share/i18n/locales /usr/lib/locale
@@ -108,7 +105,15 @@ echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> OK"
 echo
 
 echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] ==> Installing code-server"
-DOWNLOAD_URL="$(wget --no-check-certificate -q -O - https://api.github.com/repos/coder/code-server/releases |  grep '"browser_download_url": .*-linux-amd64.tar.gz' | sed -e 's/^.*"browser_download_url": "\(.*\)".*$/\1/g' | sort -V | tail -1)"
+DOWNLOAD_URL=
+case "$(uname -m)" in
+	x86_64)
+		DOWNLOAD_URL="$(wget --no-check-certificate -q -O - https://api.github.com/repos/coder/code-server/releases |  grep '"browser_download_url": .*-linux-amd64.tar.gz' | sed -e 's/^.*"browser_download_url": "\(.*\)".*$/\1/g' | sort -V | tail -1)"
+		;;
+	aarch64)
+		DOWNLOAD_URL="$(wget --no-check-certificate -q -O - https://api.github.com/repos/coder/code-server/releases |  grep '"browser_download_url": .*-linux-arm64.tar.gz' | sed -e 's/^.*"browser_download_url": "\(.*\)".*$/\1/g' | sort -V | tail -1)"
+		;;
+esac
 if [ -z "${DOWNLOAD_URL}" ]; then
 	echo "[$(TZ="GMT-9" date '+%Y-%m-%d %H:%M:%S')] Cannot get download URL"
 	exit 1
